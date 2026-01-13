@@ -11,3 +11,4 @@ pydantic
 httpx
 orjson
 python-dotenv
+PyPDF2
