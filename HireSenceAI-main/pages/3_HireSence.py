@@ -1,19 +1,21 @@
 import streamlit as st
 import PyPDF2
 from src.generate_sence import GenerateSence
+from Login import login_page
 
 class HireSence:
     def __init__(self):
-        self.page_title = "HireSence"
+        self.page_title = "Agiliad HireSence"
         self.layout = "wide"
         self.generate_sence = GenerateSence()
+
 
     def set_page_config(self):
         st.set_page_config(page_title=self.page_title, layout=self.layout)
 
     def display_header(self):
-        st.markdown("<h1 style='text-align: center;'>HireSence</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center;'>Welcome to the HireSence platform. Please upload your files and provide additional information as needed.</p>", unsafe_allow_html=True)
+        st.markdown("<h1 style='text-align: center;'>Agiliad HireSence</h1>", unsafe_allow_html=True)
+        st.markdown("<p style='text-align: center;'>Welcome to the Agiliad HireSence platform. Please upload your files and provide additional information as needed.</p>", unsafe_allow_html=True)
         st.markdown("---")
 
     def display_upload_section(self):
@@ -82,8 +84,14 @@ class HireSence:
             st.success("✅ Hiring analysis completed!")
             self.display_output(submitted, file1, text1, file2, text2, result)
 
-  
+        if st.button("Logout"):
+                    st.session_state.authenticated = False
+                    st.session_state.username = None
+                    st.rerun()
 
 if __name__ == "__main__":
-    hire_sence = HireSence()
-    hire_sence.run()
+    if not st.session_state.authenticated:
+        login_page()
+    else:
+        hire_sence = HireSence()
+        hire_sence.run()
