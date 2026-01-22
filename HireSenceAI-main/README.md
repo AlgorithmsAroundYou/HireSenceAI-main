@@ -13,7 +13,8 @@ python3 -m venv venv
 pip install -r requirements.txt
 
 ## run application
-streamlit run Home.py
+streamlit run Login.py
+
 
 ## Build .exe App
 pyinstaller --noconfirm --onefile launch.py
