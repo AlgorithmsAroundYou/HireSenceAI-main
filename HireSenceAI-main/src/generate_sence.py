@@ -1,5 +1,4 @@
-
-from src.prompt_template import PromptBuilder
+from src.prompts.prompt_template import PromptBuilder
 from src.gemini_lang_chain_wrapper import GeminiLangChainWrapper
 from src.openai_lang_chain_wrapper import OpenAILangChainWrapper
 

@@ -1,9 +1,8 @@
 # Author: Sai Kumar Kodati
-#
 
 import streamlit as st
 from streamlit.logger import get_logger
-from Login import login_page
+from src.auth import require_auth
 
 LOGGER = get_logger(__name__)
 
@@ -16,7 +15,7 @@ def run():
     )
 
     st.balloons()
-    st.info('This is a purely demo applications', icon="ℹ️")
+    st.info('This is a purely demo application', icon="ℹ️")
     st.write("# Welcome to Agiliad HireSence! 👋")
     st.snow()
 
@@ -33,11 +32,11 @@ def run():
     )
 
 
-if __name__ == "__main__":
-    # -----------------------
-    # Router
-    # -----------------------
-    if not st.session_state.authenticated:
-        login_page()
-    else:
-        run()
+# -----------------------
+# Session state init
+# -----------------------
+# Guard to ensure only authenticated users can view this page
+require_auth()
+
+# If guard passes, run the page
+run()

@@ -1,7 +1,7 @@
 import streamlit as st
 from src.auth import login
 
-st.set_page_config(page_title="Secure App", layout="centered")
+st.set_page_config(page_title="Agiliad HireSence AI Powered App", layout="centered")
 
 # -----------------------
 # Session state init
@@ -11,6 +11,9 @@ if "authenticated" not in st.session_state:
 
 if "username" not in st.session_state:
     st.session_state.username = None
+
+if "just_logged_in" not in st.session_state:
+    st.session_state.just_logged_in = False
 
 
 # -----------------------
@@ -26,16 +29,19 @@ def login_page():
         if login(username, password):
             st.session_state.authenticated = True
             st.session_state.username = username
+            st.session_state.just_logged_in = True   # 👈 flag
             st.success("Login successful!")
-            st.switch_page("pages/1_Home.py")
         else:
             st.error("Invalid username or password")
 
 
 # -----------------------
-# Router
+# Router (SAFE)
 # -----------------------
 if not st.session_state.authenticated:
     login_page()
 else:
-    st.switch_page("pages/1_Home.py")
+    # Navigate only once
+    if st.session_state.just_logged_in:
+        st.session_state.just_logged_in = False
+        st.switch_page("pages/1_Home.py")

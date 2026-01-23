@@ -1,68 +1,51 @@
+# Author: Sai Kumar Kodati
+
 import streamlit as st
-import PyPDF2
 from src.generate_sence import GenerateSence
-from Login import login_page
+from src.ui_components import render_header, upload_section, display_output
+from src.auth import require_auth
+
+# -----------------------
+# Route guard (SAFE)
+# -----------------------
+require_auth()
 
 class HireSence:
-    def __init__(self):
+    """Page orchestrator for the Agiliad HireSence Streamlit page.
+
+    This class is intentionally thin: UI rendering and PDF parsing live in
+    `src.ui_components` and `src.pdf_utils` so they can be unit tested.
+    """
+
+    def __init__(self) -> None:
         self.page_title = "Agiliad HireSence"
         self.layout = "wide"
         self.generate_sence = GenerateSence()
 
-
-    def set_page_config(self):
+    def set_page_config(self) -> None:
+        """Set Streamlit page configuration."""
         st.set_page_config(page_title=self.page_title, layout=self.layout)
 
-    def display_header(self):
-        st.markdown("<h1 style='text-align: center;'>Agiliad HireSence</h1>", unsafe_allow_html=True)
-        st.markdown("<p style='text-align: center;'>Welcome to the Agiliad HireSence platform. Please upload your files and provide additional information as needed.</p>", unsafe_allow_html=True)
-        st.markdown("---")
+    def display_header(self) -> None:
+        """Render the page header using shared UI components."""
+        render_header(
+            title=self.page_title,
+            subtitle=(
+                "Welcome to the Agiliad HireSence platform. "
+                "Please upload your files and provide additional information as needed."
+            ),
+        )
 
     def display_upload_section(self):
-        col1, col2 = st.columns(2)
-
-        with col1:
-            st.subheader("Resumes")
-            file1 = st.file_uploader("Choose a file for Resumes", key="file1")
-            pdf_text1 = ""
-            if file1 is not None and file1.type == "application/pdf":
-                pdf_reader = PyPDF2.PdfReader(file1)
-                for page in pdf_reader.pages:
-                    pdf_text1 += page.extract_text() or ""
-                st.text_area("Extracted Resume Content", pdf_text1, key="pdf_text1", height=200)
-            text1 = st.text_area("Optional Information for Resumes Content", key="text1", height=200)
-
-        with col2:
-            st.subheader("Job Descriptions")
-            file2 = st.file_uploader("Choose a file for Job Descriptions", key="file2")
-            pdf_text2 = ""
-            if file2 is not None and file2.type == "application/pdf":
-                pdf_reader = PyPDF2.PdfReader(file2)
-                for page in pdf_reader.pages:
-                    pdf_text2 += page.extract_text() or ""
-                st.text_area("Extracted Resume Content", pdf_text2, key="pdf_text2", height=200)
-            text2 = st.text_area("Optional Information for Job Descriptions Content", key="text2", height=200)
-
-        return file1, text1, file2, text2, pdf_text1, pdf_text2
+        """Render upload widgets and return collected inputs."""
+        return upload_section()
 
     def display_output(self, submitted, file1, text1, file2, text2, result):
-        st.markdown("---")
-        st.subheader("Output")
-        if submitted:
-            st.write("Generating hiring scene...")
-            st.write(result)
-            st.markdown("---")
-            st.write("Files and information submitted successfully!")
-            if file1:
-                st.write(f"File 1: {file1.name}")
-            if text1:
-                st.write(f"Text 1: {text1}")
-            if file2:
-                st.write(f"File 2: {file2.name}")
-            if text2:
-                st.write(f"Text 2: {text2}")    
+        """Render the output area using shared UI components."""
+        display_output(submitted, file1, text1, file2, text2, result)
 
-    def run(self):
+    def run(self) -> None:
+        """Main entrypoint for the page."""
         self.set_page_config()
         self.display_header()
 
@@ -70,28 +53,27 @@ class HireSence:
 
         submitted = st.button("Submit")
 
-        # if submitted:
-        #     result = self.generate_sence.generate_hire_sence(resumeContent=pdf_text1 + text1, job_description=pdf_text2 + text2)
-        #     self.display_output(submitted, file1, text1, file2, text2, result)
-        # else:
-        #     self.display_output(submitted, file1, text1, file2, text2, result=None)
         if submitted:
+            if not (pdf_text1 or text1):
+                st.warning("Please upload a resume or provide resume text.")
+                return
+
+            if not (pdf_text2 or text2):
+                st.warning("Please upload a job description or provide JD text.")
+                return
+
             with st.spinner("Analyzing and generating hiring insights..."):
                 result = self.generate_sence.generate_hire_sence(
                     resumeContent=pdf_text1 + text1,
-                    job_description=pdf_text2 + text2
+                    job_description=pdf_text2 + text2,
                 )
+
             st.success("✅ Hiring analysis completed!")
             self.display_output(submitted, file1, text1, file2, text2, result)
 
-        if st.button("Logout"):
-                    st.session_state.authenticated = False
-                    st.session_state.username = None
-                    st.rerun()
 
-if __name__ == "__main__":
-    if not st.session_state.authenticated:
-        login_page()
-    else:
-        hire_sence = HireSence()
-        hire_sence.run()
+# -----------------------
+# Page entrypoint
+# -----------------------
+hire_sence = HireSence()
+hire_sence.run()
